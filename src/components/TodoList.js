@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -7,28 +7,37 @@ import {
   useGetTodosQuery,
   useUpdateTodoMutation,
 } from "../features/api/apiSlice";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 function TodoList() {
-  const [newTodo, setNewTodo] = useState("");
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addTodo({ userId: 1, title: newTodo, completed: false });
-    setNewTodo("");
+  const schema = yup.object({
+    title: yup.string().required("Todo is required!"),
+  });
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({ resolver: yupResolver(schema) });
+
+  const onSubmit = (data) => {
+    addTodo(data);
   };
 
   const newItemSection = (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="new-todo">Enter a new todo item</label>
       <div className="new-todo">
         <input
           type="text"
           id="new-todo"
-          value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
           placeholder="Enter new todo"
+          {...register("title")}
         />
       </div>
-      <button className="submit">
+      <button className="submit" type="submit">
         <FontAwesomeIcon icon={faUpload} />
       </button>
     </form>
@@ -78,6 +87,7 @@ function TodoList() {
     <>
       <h1>Todo List</h1>
       {newItemSection}
+      {errors?.todo?.message}
       {content}
     </>
   );
